@@ -54,14 +54,12 @@ except:
     SERVER_PORT = 80
 
 PORT = environ.get('PORT', SERVER_PORT)
-alive = Popen(["python3", "alive.py"])
-Popen([f"gunicorn web.wserver:app --bind 0.0.0.0:{PORT}"], shell=True)
-srun(["qfilee"])
+srun(["qqfilee"])
 if not ospath.exists('.netrc'):
     srun(["touch", ".netrc"])
 srun(["cp", ".netrc", "/root/.netrc"])
 srun(["chmod", "600", ".netrc"])
-srun(["afilee"], shell=True)
+srun(["aafilee"], shell=True)
 sleep(0.5)
 
 Interval = []

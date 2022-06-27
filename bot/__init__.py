@@ -535,6 +535,7 @@ except:
 
 def get_client():
     return qbClient(host="localhost", port=8090)
+sleep(2)
 get_client().application.set_preferences({"add_trackers": f"{trackerslist}"})
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})

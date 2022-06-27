@@ -76,6 +76,8 @@ alive = Popen(["python3", "alive.py"])
 sleep(0.5)
 
 sleep(0.5)
+def get_client():
+    return qbClient(host="localhost", port=8090)
 
 Interval = []
 DRIVES_NAMES = []

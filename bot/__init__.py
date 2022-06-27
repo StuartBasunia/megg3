@@ -54,7 +54,7 @@ except:
     SERVER_PORT = 80
 
 PORT = environ.get('PORT', SERVER_PORT)
-srun(["qqfilee"])
+
 if not ospath.exists('.netrc'):
     srun(["touch", ".netrc"])
 srun(["cp", ".netrc", "/root/.netrc"])
@@ -82,8 +82,6 @@ aria2 = ariaAPI(
     )
 )
 
-def get_client():
-    return qbClient(host="localhost", port=8090)
 
 trackers = check_output(["curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all | awk '$0'"], shell=True).decode('utf-8')
 trackerslist = set(trackers.split("\n"))
@@ -534,6 +532,11 @@ try:
     SEARCH_PLUGINS = jsnloads(SEARCH_PLUGINS)
 except:
     SEARCH_PLUGINS = None
+srun(["qqfilee"])
+sleep(2)
+def get_client():
+    return qbClient(host="localhost", port=8090)
+get_client().application.set_preferences({"add_trackers": f"{trackerslist}"})
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})
 bot = updater.bot

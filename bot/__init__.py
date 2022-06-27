@@ -532,8 +532,6 @@ try:
 except:
     SEARCH_PLUGINS = None
 
-srun(["qqfilee"])
-sleep(2)
 def get_client():
     return qbClient(host="localhost", port=8090)
 sleep(2)

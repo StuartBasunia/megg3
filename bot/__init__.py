@@ -59,7 +59,7 @@ if not ospath.exists('.netrc'):
     srun(["touch", ".netrc"])
 srun(["cp", ".netrc", "/root/.netrc"])
 srun(["chmod", "600", ".netrc"])
-srun(["aafilee"], shell=True)
+
 sleep(0.5)
 
 Interval = []
@@ -532,8 +532,7 @@ try:
     SEARCH_PLUGINS = jsnloads(SEARCH_PLUGINS)
 except:
     SEARCH_PLUGINS = None
-srun(["qqfilee"])
-sleep(2)
+
 def get_client():
     return qbClient(host="localhost", port=8090)
 get_client().application.set_preferences({"add_trackers": f"{trackerslist}"})

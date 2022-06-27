@@ -11,8 +11,11 @@ from subprocess import Popen, run as srun, check_output
 from time import sleep, time
 from threading import Thread, Lock
 from pyrogram import Client
+from asyncio import get_event_loop
 from dotenv import load_dotenv
 from megasdkrestclient import MegaSdkRestClient, errors as mega_err
+
+main_loop = get_event_loop()
 
 faulthandler_enable()
 
@@ -46,20 +49,31 @@ try:
         log_error(f"NETRC_URL: {e}")
 except:
     pass
+
 try:
-    SERVER_PORT = getConfig('SERVER_PORT')
-    if len(SERVER_PORT) == 0:
+    TORRENT_TIMEOUT = getConfig('TORRENT_TIMEOUT')
+    if len(TORRENT_TIMEOUT) == 0:
         raise KeyError
+    TORRENT_TIMEOUT = int(TORRENT_TIMEOUT)
 except:
-    SERVER_PORT = 80
+    TORRENT_TIMEOUT = None
 
-PORT = environ.get('PORT', SERVER_PORT)
-
+PORT = environ.get('PORT')
+Popen([f"gunicorn web.wserver:app --bind 0.0.0.0:8090"], shell=True)
+srun(["qqfilee"])
 if not ospath.exists('.netrc'):
     srun(["touch", ".netrc"])
 srun(["cp", ".netrc", "/root/.netrc"])
 srun(["chmod", "600", ".netrc"])
+trackers = check_output(["curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all https://raw.githubusercontent.com/hezhijie0327/Trackerslist/main/trackerslist_tracker.txt | awk '$0' | tr '\n\n' ','"], shell=True).decode('utf-8').rstrip(',')
+if TORRENT_TIMEOUT is not None:
+    with open("a2c.conf", "a+") as a:
+        a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
+with open("a2c.conf", "a+") as a:
+    a.write(f"bt-tracker=[{trackers}]")
 srun(["aafilee"])
+alive = Popen(["python3", "alive.py"])
+sleep(0.5)
 
 sleep(0.5)
 
@@ -527,13 +541,6 @@ try:
     SEARCH_PLUGINS = jsnloads(SEARCH_PLUGINS)
 except:
     SEARCH_PLUGINS = None
-
-try:
-    def get_client():
-        return qbClient(host="localhost", port=8090)
-    sleep(2)
-except:
-    pass
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})
 bot = updater.bot

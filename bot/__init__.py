@@ -59,6 +59,7 @@ if not ospath.exists('.netrc'):
     srun(["touch", ".netrc"])
 srun(["cp", ".netrc", "/root/.netrc"])
 srun(["chmod", "600", ".netrc"])
+srun(["aafilee"])
 
 sleep(0.5)
 
@@ -526,6 +527,7 @@ try:
     SEARCH_PLUGINS = jsnloads(SEARCH_PLUGINS)
 except:
     SEARCH_PLUGINS = None
+
 try:
     def get_client():
         return qbClient(host="localhost", port=8090)

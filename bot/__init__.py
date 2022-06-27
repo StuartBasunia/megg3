@@ -83,11 +83,6 @@ aria2 = ariaAPI(
 )
 
 
-trackers = check_output(["curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all | awk '$0'"], shell=True).decode('utf-8')
-trackerslist = set(trackers.split("\n"))
-trackerslist.remove("")
-trackerslist = "\n\n".join(trackerslist)
-
 DOWNLOAD_DIR = None
 BOT_TOKEN = None
 
@@ -531,11 +526,12 @@ try:
     SEARCH_PLUGINS = jsnloads(SEARCH_PLUGINS)
 except:
     SEARCH_PLUGINS = None
-
-def get_client():
-    return qbClient(host="localhost", port=8090)
-sleep(2)
-get_client().application.set_preferences({"add_trackers": f"{trackerslist}"})
+try:
+    def get_client():
+        return qbClient(host="localhost", port=8090)
+    sleep(2)
+except:
+    pass
 
 updater = tgUpdater(token=BOT_TOKEN, request_kwargs={'read_timeout': 20, 'connect_timeout': 15})
 bot = updater.bot

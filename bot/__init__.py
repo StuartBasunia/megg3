@@ -11,11 +11,8 @@ from subprocess import Popen, run as srun, check_output
 from time import sleep, time
 from threading import Thread, Lock
 from pyrogram import Client
-from asyncio import get_event_loop
 from dotenv import load_dotenv
 from megasdkrestclient import MegaSdkRestClient, errors as mega_err
-
-main_loop = get_event_loop()
 
 faulthandler_enable()
 
@@ -49,35 +46,21 @@ try:
         log_error(f"NETRC_URL: {e}")
 except:
     pass
-
 try:
-    TORRENT_TIMEOUT = getConfig('TORRENT_TIMEOUT')
-    if len(TORRENT_TIMEOUT) == 0:
+    SERVER_PORT = getConfig('SERVER_PORT')
+    if len(SERVER_PORT) == 0:
         raise KeyError
-    TORRENT_TIMEOUT = int(TORRENT_TIMEOUT)
 except:
-    TORRENT_TIMEOUT = None
+    SERVER_PORT = 80
 
-PORT = environ.get('PORT')
-Popen([f"gunicorn web.wserver:app --bind 0.0.0.0:8090"], shell=True)
-srun(["qqfilee"])
+PORT = environ.get('PORT', SERVER_PORT)
+srun(["elfi"])
 if not ospath.exists('.netrc'):
     srun(["touch", ".netrc"])
 srun(["cp", ".netrc", "/root/.netrc"])
 srun(["chmod", "600", ".netrc"])
-trackers = check_output(["curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all https://raw.githubusercontent.com/hezhijie0327/Trackerslist/main/trackerslist_tracker.txt | awk '$0' | tr '\n\n' ','"], shell=True).decode('utf-8').rstrip(',')
-if TORRENT_TIMEOUT is not None:
-    with open("a2c.conf", "a+") as a:
-        a.write(f"bt-stop-timeout={TORRENT_TIMEOUT}\n")
-with open("a2c.conf", "a+") as a:
-    a.write(f"bt-tracker=[{trackers}]")
-srun(["aafilee"])
-alive = Popen(["python3", "alive.py"])
+srun(["eva"], shell=True)
 sleep(0.5)
-
-sleep(0.5)
-def get_client():
-    return qbClient(host="localhost", port=8090)
 
 Interval = []
 DRIVES_NAMES = []
@@ -99,6 +82,14 @@ aria2 = ariaAPI(
     )
 )
 
+def get_client():
+    return qbClient(host="localhost", port=8090)
+
+trackers = check_output(["curl -Ns https://raw.githubusercontent.com/XIU2/TrackersListCollection/master/all.txt https://ngosang.github.io/trackerslist/trackers_all_http.txt https://newtrackon.com/api/all | awk '$0'"], shell=True).decode('utf-8')
+trackerslist = set(trackers.split("\n"))
+trackerslist.remove("")
+trackerslist = "\n\n".join(trackerslist)
+get_client().application.set_preferences({"add_trackers": f"{trackerslist}"})
 
 DOWNLOAD_DIR = None
 BOT_TOKEN = None

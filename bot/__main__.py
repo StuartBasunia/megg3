@@ -240,7 +240,7 @@ def main():
         try:
             for i in AUTHORIZED_CHATS:
                 if str(i).startswith('-'):
-                    bot.sendMessage(chat_id=i, text="<b>Bot Started!</b>", parse_mode=ParseMode.HTML)
+                    bot.sendMessage(chat_id=i, text="<b>বট স্টার্টেড!</b>", parse_mode=ParseMode.HTML)
         except Exception as e:
             LOGGER.error(e)
 

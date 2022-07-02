@@ -14,15 +14,12 @@ from pyrogram import Client
 from dotenv import load_dotenv
 from megasdkrestclient import MegaSdkRestClient, errors as mega_err
 
+
 faulthandler_enable()
 
 setdefaulttimeout(600)
 
 botStartTime = time()
-
-basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-                    handlers=[FileHandler('log.txt'), StreamHandler()],
-                    level=INFO)
 
 LOGGER = getLogger(__name__)
 

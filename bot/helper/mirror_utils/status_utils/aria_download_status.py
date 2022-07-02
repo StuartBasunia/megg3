@@ -81,7 +81,6 @@ class AriaDownloadStatus:
         return self.__gid
 
     def cancel_download(self):
-        LOGGER.info(f"Cancelling Download: {self.name()}")
         self.__update()
         download = self.__download
         if download.is_waiting:

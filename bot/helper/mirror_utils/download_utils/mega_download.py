@@ -1,5 +1,5 @@
 import threading
-from bot import LOGGER, download_dict, download_dict_lock
+from bot import download_dict, download_dict_lock
 from .download_helper import DownloadHelper
 from ..status_utils.mega_status import MegaDownloadStatus
 from megasdkrestclient import MegaSdkRestClient, constants
@@ -101,8 +101,6 @@ class MegaDownloader:
         file_name = info['name']
         file_size = info['total_length']
         self.__onDownloadStart(file_name, file_size, gid)
-        LOGGER.info(f'Started mega download with gid: {gid}')
 
     def cancel_download(self):
-        LOGGER.info(f'Cancelling download on user request: {self.gid}')
         self.__mega_client.cancelDl(self.gid)

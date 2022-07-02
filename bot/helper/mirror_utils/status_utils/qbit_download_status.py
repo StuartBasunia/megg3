@@ -1,4 +1,4 @@
-from bot import DOWNLOAD_DIR, LOGGER
+from bot import DOWNLOAD_DIR
 from bot.helper.ext_utils.bot_utils import MirrorStatus, get_readable_file_size, get_readable_time
 from time import sleep
 
@@ -6,7 +6,7 @@ def get_download(client, hash_):
     try:
         return client.torrents_info(torrent_hashes=hash_)[0]
     except Exception as e:
-        LOGGER.error(f'{e}: while getting torrent info')
+        print(f'{e}')
 
 
 class QbDownloadStatus:
@@ -91,10 +91,8 @@ class QbDownloadStatus:
     def cancel_download(self):
         self.__update()
         if self.status() == MirrorStatus.STATUS_SEEDING:
-            LOGGER.info(f"Cancelling Seed: {self.name()}")
             self.__obj.client.torrents_pause(torrent_hashes=self.__obj.ext_hash)
         else:
-            LOGGER.info(f"Cancelling Download: {self.name()}")
             self.__obj.client.torrents_pause(torrent_hashes=self.__obj.ext_hash)
             sleep(0.3)
             self.__listener.onDownloadError('Download stopped by user!')

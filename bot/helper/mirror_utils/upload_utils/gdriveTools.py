@@ -1,4 +1,3 @@
-from logging import getLogger, ERROR, DEBUG
 from time import time, sleep
 from pickle import load as pload, dump as pdump
 from json import loads as jsnloads
@@ -24,9 +23,6 @@ from bot.helper.ext_utils.telegraph_helper import telegraph
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, setInterval
 from bot.helper.ext_utils.fs_utils import get_mime_type, get_path_size
 from bot.helper.ext_utils.shortenurl import short_url
-
-LOGGER = getLogger(__name__)
-getLogger('googleapiclient.discovery').setLevel(ERROR)
 
 if USE_SERVICE_ACCOUNTS:
     SERVICE_ACCOUNT_INDEX = randrange(len(listdir("accounts")))
@@ -102,7 +98,7 @@ class GoogleDriveHelper:
         return res.group(6)
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, DEBUG))
+           retry=retry_if_exception_type(HttpError))
     def _on_upload_progress(self):
         if self.status is not None:
             chunk_size = self.status.total_size * self.status.progress() - self._file_uploaded_bytes
@@ -120,7 +116,6 @@ class GoogleDriveHelper:
         try:
             res = self.__service.files().delete(fileId=file_id, supportsTeamDrives=IS_TEAM_DRIVE).execute()
             msg = "Successfully deleted"
-            LOGGER.info(f"Delete Result: {msg}")
         except HttpError as err:
             if "File not found" in str(err):
                 msg = "No such file exist"
@@ -132,7 +127,6 @@ class GoogleDriveHelper:
                     return self.deletefile(link)
             else:
                 msg = str(err)
-            LOGGER.error(f"Delete Result: {msg}")
         finally:
             return msg
 
@@ -143,11 +137,10 @@ class GoogleDriveHelper:
             SERVICE_ACCOUNT_INDEX = 0
         self.__sa_count += 1
         SERVICE_ACCOUNT_INDEX += 1
-        LOGGER.info(f"Switching to {SERVICE_ACCOUNT_INDEX}.json service account")
         self.__service = self.__authorize()
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, DEBUG))
+           retry=retry_if_exception_type(HttpError))
     def __set_permission(self, drive_id):
         permissions = {
             'role': 'reader',
@@ -159,7 +152,7 @@ class GoogleDriveHelper:
                                                    body=permissions).execute()
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=(retry_if_exception_type(HttpError) | retry_if_exception_type(IOError)), before=before_log(LOGGER, DEBUG))
+           retry=(retry_if_exception_type(HttpError) | retry_if_exception_type(IOError)))
     def __upload_file(self, file_path, file_name, mime_type, parent_id):
         # File body description
         file_metadata = {
@@ -207,10 +200,8 @@ class GoogleDriveHelper:
                         raise err
                     if USE_SERVICE_ACCOUNTS:
                         self.__switchServiceAccount()
-                        LOGGER.info(f"Got: {reason}, Trying Again.")
                         return self.__upload_file(file_path, file_name, mime_type, parent_id)
                     else:
-                        LOGGER.error(f"Got: {reason}")
                         raise err
         if self.is_cancelled:
             return
@@ -229,7 +220,6 @@ class GoogleDriveHelper:
         file_dir = f"{DOWNLOAD_DIR}{self.__listener.message.message_id}"
         file_path = f"{file_dir}/{file_name}"
         size = get_readable_file_size(get_path_size(file_path))
-        LOGGER.info("Uploading File: " + file_path)
         self.updater = setInterval(self.update_interval, self._on_upload_progress)
         try:
             if ospath.isfile(file_path):
@@ -239,7 +229,6 @@ class GoogleDriveHelper:
                     return
                 if link is None:
                     raise Exception('Upload has been manually cancelled')
-                LOGGER.info("Uploaded To G-Drive: " + file_path)
             else:
                 mime_type = 'Folder'
                 dir_id = self.__create_directory(ospath.basename(ospath.abspath(file_name)), parent_id)
@@ -249,21 +238,19 @@ class GoogleDriveHelper:
                 link = f"https://drive.google.com/folderview?id={dir_id}"
                 if self.is_cancelled:
                     return
-                LOGGER.info("Uploaded To G-Drive: " + file_name)
         except Exception as e:
             if isinstance(e, RetryError):
-                LOGGER.info(f"Total Attempts: {e.last_attempt.attempt_number}")
+
                 err = e.last_attempt.exception()
             else:
                 err = e
-            LOGGER.error(err)
+            
             self.__listener.onUploadError(str(err))
             self.is_errored = True
         finally:
             self.updater.cancel()
             if self.is_cancelled and not self.is_errored:
                 if mime_type == 'Folder':
-                    LOGGER.info("Deleting uploaded data from Drive...")
                     link = f"https://drive.google.com/folderview?id={dir_id}"
                     self.deletefile(link)
                 return
@@ -272,7 +259,7 @@ class GoogleDriveHelper:
         self.__listener.onUploadComplete(link, size, self.__total_files, self.__total_folders, mime_type, self.name)
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, DEBUG))
+           retry=retry_if_exception_type(HttpError))
     def __copyFile(self, file_id, dest_id):
         body = {
             'parents': [dest_id]
@@ -298,20 +285,19 @@ class GoogleDriveHelper:
                             return self.__copyFile(file_id, dest_id)
                     else:
                         self.is_cancelled = True
-                        LOGGER.error(f"Got: {reason}")
                         raise err
                 else:
                     raise err
 
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, DEBUG))
+           retry=retry_if_exception_type(HttpError))
     def __getFileMetadata(self, file_id):
         return self.__service.files().get(supportsAllDrives=True, fileId=file_id,
                                               fields="name,id,mimeType,size").execute()
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, DEBUG))
+           retry=retry_if_exception_type(HttpError))
     def __getFilesByFolderId(self, folder_id):
         page_token = None
         files = []
@@ -341,7 +327,6 @@ class GoogleDriveHelper:
             msg = "Google Drive ID could not be found in the provided link"
             return msg
         msg = ""
-        LOGGER.info(f"File ID: {file_id}")
         try:
             meta = self.__getFileMetadata(file_id)
             mime_type = meta.get("mimeType")
@@ -350,7 +335,6 @@ class GoogleDriveHelper:
                 self.__cloneFolder(meta.get('name'), meta.get('name'), meta.get('id'), dir_id)
                 durl = self.__G_DRIVE_DIR_BASE_DOWNLOAD_URL.format(dir_id)
                 if self.is_cancelled:
-                    LOGGER.info("Deleting cloned data from Drive...")
                     self.deletefile(durl)
                     return "your clone has been stopped and cloned data has been deleted!", "cancelled"
                 msg += f'<b>Name: </b><code>{meta.get("name")}</code>'
@@ -394,10 +378,9 @@ class GoogleDriveHelper:
                 buttons.buildbutton(f"{BUTTON_SIX_NAME}", f"{BUTTON_SIX_URL}")
         except Exception as err:
             if isinstance(err, RetryError):
-                LOGGER.info(f"Total Attempts: {err.last_attempt.attempt_number}")
                 err = err.last_attempt.exception()
             err = str(err).replace('>', '').replace('<', '')
-            LOGGER.error(err)
+            
             if "User rate limit exceeded" in str(err):
                 msg = "User rate limit exceeded."
             elif "File not found" in str(err):
@@ -412,7 +395,6 @@ class GoogleDriveHelper:
         return msg, InlineKeyboardMarkup(buttons.build_menu(2))
 
     def __cloneFolder(self, name, local_path, folder_id, parent_id):
-        LOGGER.info(f"Syncing: {local_path}")
         files = self.__getFilesByFolderId(folder_id)
         if len(files) == 0:
             return parent_id
@@ -430,7 +412,7 @@ class GoogleDriveHelper:
                 break
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, DEBUG))
+           retry=retry_if_exception_type(HttpError))
     def __create_directory(self, directory_name, parent_id):
         file_metadata = {
             "name": directory_name,
@@ -443,7 +425,7 @@ class GoogleDriveHelper:
         file_id = file.get("id")
         if not IS_TEAM_DRIVE:
             self.__set_permission(file_id)
-        LOGGER.info("Created G-Drive Folder:\nName: {}\nID: {} ".format(file.get("name"), file_id))
+
         return file_id
 
     def __upload_dir(self, input_directory, parent_id):
@@ -478,9 +460,9 @@ class GoogleDriveHelper:
                 with open(self.__G_DRIVE_TOKEN_FILE, 'rb') as f:
                     credentials = pload(f)
             else:
-                LOGGER.error('token.pickle not found!')
+                print("gg")
         else:
-            LOGGER.info(f"Authorizing with {SERVICE_ACCOUNT_INDEX}.json service account")
+
             credentials = service_account.Credentials.from_service_account_file(
                 f'accounts/{SERVICE_ACCOUNT_INDEX}.json',
                 scopes=self.__OAUTH_SCOPE)
@@ -491,7 +473,7 @@ class GoogleDriveHelper:
         if USE_SERVICE_ACCOUNTS and not self.alt_auth:
             self.alt_auth = True
             if ospath.exists(self.__G_DRIVE_TOKEN_FILE):
-                LOGGER.info("Authorize with token.pickle")
+
                 with open(self.__G_DRIVE_TOKEN_FILE, 'rb') as f:
                     credentials = pload(f)
                 return build('drive', 'v3', credentials=credentials, cache_discovery=False)
@@ -595,7 +577,7 @@ class GoogleDriveHelper:
                 )
         except Exception as err:
             err = str(err).replace('>', '').replace('<', '')
-            LOGGER.error(err)
+            
             return {'files': []}
 
     def drive_list(self, fileName, stopDup=False, noMulti=False, isRecursive=True, itemType=""):
@@ -700,11 +682,11 @@ class GoogleDriveHelper:
             msg = "Google Drive ID could not be found in the provided link"
             return msg
         msg = ""
-        LOGGER.info(f"File ID: {file_id}")
+
         try:
             meta = self.__getFileMetadata(file_id)
             name = meta['name']
-            LOGGER.info(f"Counting: {name}")
+
             mime_type = meta.get('mimeType')
             if mime_type == self.__G_DRIVE_DIR_MIME_TYPE:
                 self.__gDrive_directory(meta)
@@ -723,10 +705,9 @@ class GoogleDriveHelper:
             msg += f'\n<b>Files: </b>{self.__total_files}'
         except Exception as err:
             if isinstance(err, RetryError):
-                LOGGER.info(f"Total Attempts: {err.last_attempt.attempt_number}")
                 err = err.last_attempt.exception()
             err = str(err).replace('>', '').replace('<', '')
-            LOGGER.error(err)
+            
             if "File not found" in str(err):
                 token_service = self.__alt_authorize()
                 if token_service is not None:
@@ -766,11 +747,10 @@ class GoogleDriveHelper:
         except (KeyError, IndexError):
             msg = "Google Drive ID could not be found in the provided link"
             return msg, "", "", ""
-        LOGGER.info(f"File ID: {file_id}")
         try:
             meta = self.__getFileMetadata(file_id)
             name = meta['name']
-            LOGGER.info(f"Checking size, this might take a minute: {name}")
+            
             if meta.get('mimeType') == self.__G_DRIVE_DIR_MIME_TYPE:
                 self.__gDrive_directory(meta)
             else:
@@ -780,10 +760,9 @@ class GoogleDriveHelper:
             files = self.__total_files
         except Exception as err:
             if isinstance(err, RetryError):
-                LOGGER.info(f"Total Attempts: {err.last_attempt.attempt_number}")
                 err = err.last_attempt.exception()
             err = str(err).replace('>', '').replace('<', '')
-            LOGGER.error(err)
+            
             if "File not found" in str(err):
                 token_service = self.__alt_authorize()
                 if token_service is not None:
@@ -809,10 +788,8 @@ class GoogleDriveHelper:
                 self.__download_file(file_id, path, meta.get('name'), meta.get('mimeType'))
         except Exception as err:
             if isinstance(err, RetryError):
-                LOGGER.info(f"Total Attempts: {err.last_attempt.attempt_number}")
                 err = err.last_attempt.exception()
             err = str(err).replace('>', '').replace('<', '')
-            LOGGER.error(err)
             if "downloadQuotaExceeded" in str(err):
                 err = "Download Quota Exceeded."
             elif "File not found" in str(err):
@@ -855,7 +832,7 @@ class GoogleDriveHelper:
                 break
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=(retry_if_exception_type(HttpError) | retry_if_exception_type(IOError)), before=before_log(LOGGER, DEBUG))
+           retry=(retry_if_exception_type(HttpError) | retry_if_exception_type(IOError)))
     def __download_file(self, file_id, path, filename, mime_type):
         request = self.__service.files().get_media(fileId=file_id)
         filename = filename.replace('/', '')
@@ -882,15 +859,15 @@ class GoogleDriveHelper:
                             raise err
                         else:
                             self.__switchServiceAccount()
-                            LOGGER.info(f"Got: {reason}, Trying Again...")
+                            
                             return self.__download_file(file_id, path, filename, mime_type)
                     else:
-                        LOGGER.error(f"Got: {reason}")
+                        
                         raise err
         self._file_downloaded_bytes = 0
 
     @retry(wait=wait_exponential(multiplier=2, min=3, max=6), stop=stop_after_attempt(3),
-           retry=retry_if_exception_type(HttpError), before=before_log(LOGGER, DEBUG))
+           retry=retry_if_exception_type(HttpError))
     def _on_download_progress(self):
         if self.dstatus is not None:
             chunk_size = self.dstatus.total_size * self.dstatus.progress() - self._file_downloaded_bytes
@@ -901,10 +878,10 @@ class GoogleDriveHelper:
     def cancel_download(self):
         self.is_cancelled = True
         if self.is_downloading:
-            LOGGER.info(f"Cancelling Download: {self.name}")
+            print("Cancel")
             self.__listener.onDownloadError('Download stopped by user!')
         elif self.is_cloning:
-            LOGGER.info(f"Cancelling Clone: {self.name}")
+            print("Cancel")
         elif self.is_uploading:
-            LOGGER.info(f"Cancelling Upload: {self.name}")
+
             self.__listener.onUploadError('your upload has been stopped and uploaded data has been deleted!')

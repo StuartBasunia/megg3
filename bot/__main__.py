@@ -8,7 +8,7 @@ from sys import executable
 from telegram import ParseMode, InlineKeyboardMarkup
 from telegram.ext import CommandHandler
 
-from bot import bot, app, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, AUTHORIZED_CHATS, LOGGER, Interval, rss_session
+from bot import bot, app, dispatcher, updater, botStartTime, IGNORE_PENDING_REQUESTS, AUTHORIZED_CHATS, Interval, rss_session
 from .helper.ext_utils.fs_utils import start_cleanup, clean_all, exit_clean_up
 from .helper.telegram_helper.bot_commands import BotCommands
 from .helper.telegram_helper.message_utils import sendMessage, sendMarkup, editMessage, sendLogFile
@@ -239,7 +239,7 @@ def main():
                 if str(i).startswith('-'):
                     bot.sendMessage(chat_id=i, text="<b>বট স্টার্টেড!</b>", parse_mode=ParseMode.HTML)
         except Exception as e:
-            LOGGER.error(e)
+            print(e)
 
     start_handler = CommandHandler(BotCommands.StartCommand, start, run_async=True)
     ping_handler = CommandHandler(BotCommands.PingCommand, ping,
@@ -258,7 +258,6 @@ def main():
     dispatcher.add_handler(stats_handler)
     dispatcher.add_handler(log_handler)
     updater.start_polling(drop_pending_updates=IGNORE_PENDING_REQUESTS)
-    LOGGER.info("Bot Started!")
     signal(SIGINT, exit_clean_up)
     if rss_session is not None:
         rss_session.start()

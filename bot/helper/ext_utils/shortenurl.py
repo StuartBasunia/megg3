@@ -7,7 +7,7 @@ from base64 import b64encode
 from urllib.parse import quote, unquote
 from urllib3 import disable_warnings
 
-from bot import LOGGER, SHORTENER, SHORTENER_API
+from bot import SHORTENER, SHORTENER_API
 
 
 def short_url(longurl):
@@ -46,6 +46,5 @@ def short_url(longurl):
         link = cget(f'https://{SHORTENER}/api?api={SHORTENER_API}&url={quote(longurl)}&format=text').text
 
     if len(link) == 0:
-        LOGGER.error("Something is Wrong with the url shortener")
         return longurl
     return link

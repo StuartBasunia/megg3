@@ -1,7 +1,7 @@
 from threading import Lock
 from pathlib import Path
 
-from bot import LOGGER, download_dict, download_dict_lock, MEGA_LIMIT, STOP_DUPLICATE, ZIP_UNZIP_LIMIT, STORAGE_THRESHOLD
+from bot import download_dict, download_dict_lock, MEGA_LIMIT, STOP_DUPLICATE, ZIP_UNZIP_LIMIT, STORAGE_THRESHOLD
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, sendStatusMessage
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, setInterval
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
@@ -99,14 +99,13 @@ class MegaDownloader:
         try:
             dl = self.__mega_client.addDl(link, path)
         except Exception as err:
-            LOGGER.error(err)
             return sendMessage(str(err), self.__listener.bot, self.__listener.message)
         gid = dl['gid']
         info = self.__mega_client.getDownloadInfo(gid)
         file_name = info['name']
         file_size = info['total_length']
         if STOP_DUPLICATE and not self.__listener.isLeech:
-            LOGGER.info('Checking File/Folder if already in Drive')
+
             mname = file_name
             if self.__listener.isZip:
                 mname = mname + ".zip"
@@ -136,13 +135,13 @@ class MegaDownloader:
                 msg3 = f'Failed, Mega limit is {MEGA_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(file_size)}.'
                 limit = MEGA_LIMIT
             if limit is not None:
-                LOGGER.info('Checking File/Folder Size...')
+
                 if file_size > limit * 1024**3:
                     return sendMessage(msg3, self.__listener.bot, self.__listener.message)
         self.__onDownloadStart(file_name, file_size, gid)
         sendStatusMessage(self.__listener.message, self.__listener.bot)
-        LOGGER.info(f'Mega download started with gid: {gid}')
+
 
     def cancel_download(self):
-        LOGGER.info(f'Cancelling download on user request: {self.gid}')
+
         self.__mega_client.cancelDl(self.gid)

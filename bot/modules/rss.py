@@ -4,7 +4,7 @@ from telegram.ext import CommandHandler, CallbackQueryHandler
 from telegram import InlineKeyboardMarkup
 from threading import Lock
 
-from bot import dispatcher, job_queue, rss_dict, LOGGER, DB_URI, RSS_DELAY, RSS_CHAT_ID, RSS_COMMAND
+from bot import dispatcher, job_queue, rss_dict, DB_URI, RSS_DELAY, RSS_CHAT_ID, RSS_COMMAND
 from bot.helper.telegram_helper.message_utils import sendMessage, editMessage, sendRss, sendMarkup
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
@@ -42,10 +42,10 @@ def rss_get(update, context):
                     item_info += f"<b>Link: </b><code>{link}</code>\n\n"
                 editMessage(item_info, msg)
             except IndexError as e:
-                LOGGER.error(str(e))
+                print.error(str(e))
                 editMessage("Parse depth exceeded. Try again with a lower value.", msg)
             except Exception as e:
-                LOGGER.error(str(e))
+                print.error(str(e))
                 editMessage(str(e), msg)
         else:
             sendMessage("Enter a vaild title/value.", context.bot, update.message)
@@ -72,7 +72,7 @@ def rss_sub(update, context):
             filters = None
         exists = rss_dict.get(title)
         if exists is not None:
-            LOGGER.error("This title already subscribed! Choose another title!")
+            print.error("This title already subscribed! Choose another title!")
             return sendMessage("This title already subscribed! Choose another title!", context.bot, update.message)
         try:
             rss_d = feedparse(feed_link)
@@ -94,13 +94,12 @@ def rss_sub(update, context):
                     rss_job.enabled = True
                 rss_dict[title] = [feed_link, last_link, last_title, f_lists]
             sendMessage(sub_msg, context.bot, update.message)
-            LOGGER.info(f"Rss Feed Added: {title} - {feed_link} - {filters}")
         except (IndexError, AttributeError) as e:
-            LOGGER.error(str(e))
+            print.error(str(e))
             msg = "The link doesn't seem to be a RSS feed or it's region-blocked!"
             sendMessage(msg, context.bot, update.message)
         except Exception as e:
-            LOGGER.error(str(e))
+            print.error(str(e))
             sendMessage(str(e), context.bot, update.message)
     except IndexError:
         msg = f"Use this format to add feed url:\n/{BotCommands.RssSubCommand} Title https://www.rss-url.com"
@@ -125,14 +124,13 @@ def rss_unsub(update, context):
         exists = rss_dict.get(title)
         if exists is None:
             msg = "Rss link not exists! Nothing removed!"
-            LOGGER.error(msg)
+            print.error(msg)
             sendMessage(msg, context.bot, update.message)
         else:
             DbManger().rss_delete(title)
             with rss_dict_lock:
                 del rss_dict[title]
             sendMessage(f"Rss link with Title: <code>{title}</code> has been removed!", context.bot, update.message)
-            LOGGER.info(f"Rss link with Title: {title} has been removed!")
     except IndexError:
         sendMessage(f"Use this format to remove feed url:\n/{BotCommands.RssUnSubCommand} Title", context.bot, update.message)
 
@@ -162,19 +160,16 @@ def rss_set_update(update, context):
                 rss_dict.clear()
             rss_job.enabled = False
             editMessage("All Rss Subscriptions have been removed.", msg)
-            LOGGER.info("All Rss Subscriptions have been removed.")
         else:
             editMessage("No subscriptions to remove!", msg)
     elif data[1] == 'pause':
         query.answer()
         rss_job.enabled = False
         editMessage("Rss Paused", msg)
-        LOGGER.info("Rss Paused")
     elif data[1] == 'start':
         query.answer()
         rss_job.enabled = True
         editMessage("Rss Started", msg)
-        LOGGER.info("Rss Started")
 
 def rss_monitor(context):
     with rss_dict_lock:
@@ -195,8 +190,7 @@ def rss_monitor(context):
                     if data[1] == rss_d.entries[feed_count]['link'] or data[2] == rss_d.entries[feed_count]['title']:
                         break
                 except IndexError:
-                    LOGGER.warning(f"Reached Max index no. {feed_count} for this feed: {name}. \
-                          Maybe you need to add less RSS_DELAY to not miss some torrents")
+                    print("fok")
                     break
                 parse = True
                 for list in data[3]:
@@ -221,10 +215,9 @@ def rss_monitor(context):
             DbManger().rss_update(name, str(last_link), str(last_title))
             with rss_dict_lock:
                 rss_dict[name] = [data[0], str(last_link), str(last_title), data[3]]
-            LOGGER.info(f"Feed Name: {name}")
-            LOGGER.info(f"Last item: {last_link}")
+
         except Exception as e:
-            LOGGER.error(f"{e} Feed Name: {name} - Feed Link: {data[0]}")
+            print.error(f"{e} Feed Name: {name} - Feed Link: {data[0]}")
             continue
 
 if DB_URI is not None and RSS_CHAT_ID is not None:

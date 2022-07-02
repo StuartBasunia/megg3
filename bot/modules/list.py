@@ -2,7 +2,7 @@ from threading import Thread
 from telegram import InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
-from bot import LOGGER, dispatcher
+from bot import dispatcher
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.message_utils import sendMessage, editMessage, sendMarkup
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -39,7 +39,6 @@ def select_type(update, context):
     Thread(target=_list_drive, args=(key, msg, item_type)).start()
 
 def _list_drive(key, bmsg, item_type):
-    LOGGER.info(f"listing: {key}")
     gdrive = GoogleDriveHelper()
     msg, button = gdrive.drive_list(key, isRecursive=True, itemType=item_type)
     if button:

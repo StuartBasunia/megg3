@@ -6,7 +6,7 @@ from urllib.parse import quote
 from telegram import InlineKeyboardMarkup
 from telegram.ext import CommandHandler, CallbackQueryHandler
 
-from bot import dispatcher, LOGGER, SEARCH_API_LINK, SEARCH_PLUGINS, get_client, SEARCH_LIMIT
+from bot import dispatcher, SEARCH_API_LINK, SEARCH_PLUGINS, get_client, SEARCH_LIMIT
 from bot.helper.ext_utils.telegraph_helper import telegraph
 from bot.helper.telegram_helper.message_utils import editMessage, sendMessage, sendMarkup
 from bot.helper.telegram_helper.filters import CustomFilters
@@ -118,19 +118,16 @@ def torserbut(update, context):
 def _search(key, site, message, method):
     if method.startswith('api'):
         if method == 'apisearch':
-            LOGGER.info(f"API Searching: {key} from {site}")
             if site == 'all':
                 api = f"{SEARCH_API_LINK}/api/v1/all/search?query={key}&limit={SEARCH_LIMIT}"
             else:
                 api = f"{SEARCH_API_LINK}/api/v1/search?site={site}&query={key}&limit={SEARCH_LIMIT}"
         elif method == 'apitrend':
-            LOGGER.info(f"API Trending from {site}")
             if site == 'all':
                 api = f"{SEARCH_API_LINK}/api/v1/all/trending?limit={SEARCH_LIMIT}"
             else:
                 api = f"{SEARCH_API_LINK}/api/v1/trending?site={site}&limit={SEARCH_LIMIT}"
         elif method == 'apirecent':
-            LOGGER.info(f"API Recent from {site}")
             if site == 'all':
                 api = f"{SEARCH_API_LINK}/api/v1/all/recent?limit={SEARCH_LIMIT}"
             else:
@@ -151,7 +148,6 @@ def _search(key, site, message, method):
         except Exception as e:
             return editMessage(str(e), message)
     else:
-        LOGGER.info(f"PLUGINS Searching: {key} from {site}")
         client = get_client()
         search = client.search_start(pattern=str(key), plugins=str(site), category='all')
         search_id = search.id

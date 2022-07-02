@@ -6,7 +6,7 @@ from re import search as re_search
 from telegram import InlineKeyboardMarkup
 from telegram.ext import CallbackQueryHandler
 
-from bot import download_dict, download_dict_lock, BASE_URL, dispatcher, get_client, TORRENT_DIRECT_LIMIT, ZIP_UNZIP_LIMIT, STOP_DUPLICATE, WEB_PINCODE, QB_SEED, TORRENT_TIMEOUT, LOGGER, STORAGE_THRESHOLD
+from bot import download_dict, download_dict_lock, BASE_URL, dispatcher, get_client, TORRENT_DIRECT_LIMIT, ZIP_UNZIP_LIMIT, STOP_DUPLICATE, WEB_PINCODE, QB_SEED, TORRENT_TIMEOUT, STORAGE_THRESHOLD
 from bot.helper.mirror_utils.status_utils.qbit_download_status import QbDownloadStatus
 from bot.helper.mirror_utils.upload_utils.gdriveTools import GoogleDriveHelper
 from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, deleteMessage, sendStatusMessage, update_all_messages
@@ -77,7 +77,6 @@ class QbDownloader:
             gid = self.ext_hash[:12]
             with download_dict_lock:
                 download_dict[self.__listener.uid] = QbDownloadStatus(self.__listener, self)
-            LOGGER.info(f"QbitDownload started: {tor_info.name} - Hash: {self.ext_hash}")
             self.periodic = setInterval(self.POLLING_INTERVAL, self.__qb_listener)
             if BASE_URL is not None and select:
                 if not is_file:
@@ -130,7 +129,6 @@ class QbDownloader:
             elif tor_info.state == "downloading":
                 self.__stalled_time = time()
                 if not self.__dupChecked and STOP_DUPLICATE and ospath.isdir(f'{self.__path}') and not self.__listener.isLeech:
-                    LOGGER.info('Checking File/Folder if already in Drive')
                     qbname = str(listdir(f'{self.__path}')[-1])
                     if qbname.endswith('.!qB'):
                         qbname = ospath.splitext(qbname)[0]
@@ -165,7 +163,6 @@ class QbDownloader:
                         mssg = f'Torrent limit is {TORRENT_DIRECT_LIMIT}GB'
                         limit = TORRENT_DIRECT_LIMIT
                     if limit is not None:
-                        LOGGER.info('Checking File/Folder Size...')
                         if size > limit * 1024**3:
                             fmsg = f"{mssg}.\nYour File/Folder size is {get_readable_file_size(size)}"
                             self.__onDownloadError(fmsg)
@@ -175,7 +172,7 @@ class QbDownloader:
                     msg = f"Force recheck - Name: {tor_info.name} Hash: "
                     msg += f"{self.ext_hash} Downloaded Bytes: {tor_info.downloaded} "
                     msg += f"Size: {tor_info.size} Total Size: {tor_info.total_size}"
-                    LOGGER.info(msg)
+
                     self.client.torrents_recheck(torrent_hashes=self.ext_hash)
                     self.__rechecked = True
                 elif TORRENT_TIMEOUT is not None and time() - self.__stalled_time >= TORRENT_TIMEOUT:
@@ -201,7 +198,6 @@ class QbDownloader:
                             return
                         download_dict[self.__listener.uid] = QbDownloadStatus(self.__listener, self)
                     update_all_messages()
-                    LOGGER.info(f"Seeding started: {tor_info.name}")
                 else:
                     self.client.torrents_delete(torrent_hashes=self.ext_hash, delete_files=True)
                     self.client.auth_log_out()
@@ -212,7 +208,7 @@ class QbDownloader:
                 self.client.auth_log_out()
                 self.periodic.cancel()
         except Exception as e:
-            LOGGER.error(str(e))
+            print(str(e))
 
     def __onDownloadError(self, err):
         self.client.torrents_pause(torrent_hashes=self.ext_hash)

@@ -13,7 +13,7 @@ from telegram import InlineKeyboardMarkup
 
 from bot import Interval, INDEX_URL, BUTTON_FOUR_NAME, BUTTON_FOUR_URL, BUTTON_FIVE_NAME, BUTTON_FIVE_URL, \
                 BUTTON_SIX_NAME, BUTTON_SIX_URL, BLOCK_MEGA_FOLDER, BLOCK_MEGA_LINKS, VIEW_LINK, aria2, QB_SEED, \
-                dispatcher, DOWNLOAD_DIR, download_dict, download_dict_lock, TG_SPLIT_SIZE, LOGGER, MEGA_KEY
+                dispatcher, DOWNLOAD_DIR, download_dict, download_dict_lock, TG_SPLIT_SIZE, MEGA_KEY
 from bot.helper.ext_utils.bot_utils import is_url, is_magnet, is_gdtot_link, is_mega_link, is_gdrive_link, get_content_type
 from bot.helper.ext_utils.fs_utils import get_base_name, get_path_size, split as fs_split, clean_download
 from bot.helper.ext_utils.shortenurl import short_url
@@ -60,7 +60,6 @@ class MirrorListener:
 
     def onDownloadComplete(self):
         with download_dict_lock:
-            LOGGER.info(f"Download completed: {download_dict[self.uid].name()}")
             download = download_dict[self.uid]
             name = str(download.name()).replace('/', '')
             gid = download.gid()
@@ -73,7 +72,6 @@ class MirrorListener:
                 with download_dict_lock:
                     download_dict[self.uid] = ZipStatus(name, m_path, size)
                 path = m_path + ".zip"
-                LOGGER.info(f'Zip: orig_path: {m_path}, zip_path: {path}')
                 if self.pswd is not None:
                     if self.isLeech and int(size) > TG_SPLIT_SIZE:
                         srun(["7z", f"-v{TG_SPLIT_SIZE}b", "a", "-mx=0", f"-p{self.pswd}", path, m_path])
@@ -84,7 +82,6 @@ class MirrorListener:
                 else:
                     srun(["7z", "a", "-mx=0", path, m_path])
             except FileNotFoundError:
-                LOGGER.info('File to archive not found!')
                 self.onUploadError('Internal error occurred!!')
                 return
             if not self.isQbit or not QB_SEED or self.isLeech:
@@ -96,7 +93,6 @@ class MirrorListener:
             try:
                 if ospath.isfile(m_path):
                     path = get_base_name(m_path)
-                LOGGER.info(f"Extracting: {name}")
                 with download_dict_lock:
                     download_dict[self.uid] = ExtractStatus(name, m_path, size)
                 if ospath.isdir(m_path):
@@ -110,7 +106,7 @@ class MirrorListener:
                                 else:
                                     result = srun(["7z", "x", m_path, f"-o{dirpath}", "-aot"])
                                 if result.returncode != 0:
-                                    LOGGER.error('Unable to extract archive!')
+                                    print.error('Unable to extract archive!')
                         for file_ in files:
                             if file_.endswith((".rar", ".zip")) or re_search(r'\.r\d+$|\.7z\.\d+$|\.z\d+$|\.zip\.\d+$', file_):
                                 del_path = ospath.join(dirpath, file_)
@@ -122,13 +118,10 @@ class MirrorListener:
                     else:
                         result = srun(["bash", "extract", m_path])
                     if result.returncode == 0:
-                        LOGGER.info(f"Extracted Path: {path}")
                         osremove(m_path)
                     else:
-                        LOGGER.error('Unable to extract archive! Uploading anyway')
                         path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
             except NotSupportedExtractionArchive:
-                LOGGER.info("Not any valid archive, uploading file as it is.")
                 path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
         else:
             path = f'{DOWNLOAD_DIR}{self.uid}/{name}'
@@ -145,12 +138,10 @@ class MirrorListener:
                             checked = True
                             with download_dict_lock:
                                 download_dict[self.uid] = SplitStatus(up_name, up_path, size)
-                            LOGGER.info(f"Splitting: {up_name}")
                         fs_split(f_path, f_size, file_, dirpath, TG_SPLIT_SIZE)
                         osremove(f_path)
         if self.isLeech:
             size = get_path_size(f'{DOWNLOAD_DIR}{self.uid}')
-            LOGGER.info(f"Leech Name: {up_name}")
             tg = TgUploader(up_name, self)
             tg_upload_status = TgUploadStatus(tg, size, gid, self)
             with download_dict_lock:
@@ -159,7 +150,6 @@ class MirrorListener:
             tg.upload()
         else:
             size = get_path_size(up_path)
-            LOGGER.info(f"Upload Name: {up_name}")
             drive = GoogleDriveHelper(up_name, self)
             upload_status = UploadStatus(drive, size, gid, self)
             with download_dict_lock:
@@ -175,7 +165,7 @@ class MirrorListener:
                 del download_dict[self.uid]
                 clean_download(download.path())
             except Exception as e:
-                LOGGER.error(str(e))
+                print.error(str(e))
             count = len(download_dict)
         msg = f"{self.tag} your download has been stopped due to: {error}"
         sendMessage(msg, self.bot, self.message)
@@ -225,7 +215,6 @@ class MirrorListener:
             buttons = ButtonMaker()
             link = short_url(link)
             buttons.buildbutton("☁️ Drive Link", link)
-            LOGGER.info(f'Done Uploading {name}')
             if INDEX_URL is not None:
                 url_path = rutils.quote(f'{name}')
                 share_url = f'{INDEX_URL}/{url_path}'
@@ -384,7 +373,6 @@ def _mirror(bot, message, isZip=False, extract=False, isQbit=False, isLeech=Fals
         help_msg += "\n<code>/command</code> 10(number of links/files)"
         return sendMessage(help_msg, bot, message)
 
-    LOGGER.info(link)
 
     if not is_mega_link(link) and not isQbit and not is_magnet(link) \
         and not is_gdrive_link(link) and not link.endswith('.torrent'):
@@ -393,9 +381,8 @@ def _mirror(bot, message, isZip=False, extract=False, isQbit=False, isLeech=Fals
             try:
                 is_gdtot = is_gdtot_link(link)
                 link = direct_link_generator(link)
-                LOGGER.info(f"Generated link: {link}")
             except DirectDownloadLinkException as e:
-                LOGGER.info(str(e))
+                print.info(str(e))
                 if str(e).startswith('ERROR:'):
                     return sendMessage(str(e), bot, message)
     elif isQbit and not is_magnet(link) and not ospath.exists(link):
@@ -418,7 +405,7 @@ def _mirror(bot, message, isZip=False, extract=False, isQbit=False, isLeech=Fals
                 if error.startswith('No connection adapters were found for'):
                     link = error.split("'")[1]
                 else:
-                    LOGGER.error(str(e))
+                    print.error(str(e))
                     return sendMessage(tag + " " + error, bot, message)
         else:
             msg = "Qb commands for torrents only. if you are trying to dowload torrent then report."

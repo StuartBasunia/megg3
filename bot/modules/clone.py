@@ -9,7 +9,7 @@ from bot.helper.telegram_helper.message_utils import sendMessage, sendMarkup, de
 from bot.helper.telegram_helper.filters import CustomFilters
 from bot.helper.telegram_helper.bot_commands import BotCommands
 from bot.helper.mirror_utils.status_utils.clone_status import CloneStatus
-from bot import dispatcher, LOGGER, CLONE_LIMIT, STOP_DUPLICATE, download_dict, download_dict_lock, Interval
+from bot import dispatcher, CLONE_LIMIT, STOP_DUPLICATE, download_dict, download_dict_lock, Interval
 from bot.helper.ext_utils.bot_utils import get_readable_file_size, is_gdrive_link, is_gdtot_link, new_thread, is_appdrive_link
 from bot.helper.mirror_utils.download_utils.direct_link_generator import gdtot, appdrive
 from bot.helper.ext_utils.exceptions import DirectDownloadLinkException
@@ -44,7 +44,7 @@ def _clone(message, bot, multi=0):
             deleteMessage(bot, msg)
         except DirectDownloadLinkException as e:
             deleteMessage(bot, msg)
-            LOGGER.error(e)
+            print.error(e)
             return sendMessage(str(e), bot, message)
     is_appdrive = is_appdrive_link(link)
     if is_appdrive:
@@ -55,7 +55,7 @@ def _clone(message, bot, multi=0):
             deleteMessage(bot, msg)
         except DirectDownloadLinkException as e:
             deleteMessage(bot, msg)
-            LOGGER.error(e)
+            print.error(e)
             return sendMessage(str(e), bot, message)
                         
     if is_gdrive_link(link):
@@ -64,21 +64,17 @@ def _clone(message, bot, multi=0):
         if res != "":
             return sendMessage(res, bot, message)
         if STOP_DUPLICATE:
-            LOGGER.info('Checking File/Folder if already in Drive...')
             smsg, button = gd.drive_list(name, True, True)
             if smsg:
                 msg3 = "File/Folder is already available in Drive.\nHere are the search results:"
                 sendMarkup(msg3, bot, message, button)
                 if is_gdtot:
-                    LOGGER.info(f"Deleting: {link}")
                     gd.deleteFile(link)
                 elif is_appdrive:
                     if apdict.get('link_type') == 'login':
-                        LOGGER.info(f"Deleting: {link}")
                         gd.deleteFile(link)
                     return
         if CLONE_LIMIT is not None:
-            LOGGER.info('Checking File/Folder Size...')
             if size > CLONE_LIMIT * 1024**3:
                 msg2 = f'Failed, Clone limit is {CLONE_LIMIT}GB.\nYour File/Folder size is {get_readable_file_size(size)}.'
                 return sendMessage(msg2, bot, message)
@@ -120,7 +116,6 @@ def _clone(message, bot, multi=0):
             sendMarkup(result, bot, message, button)
         if is_gdtot:
             gd.deletefile(link)
-        LOGGER.info(f"Cloning Done: {name}")
     else:
         sendMessage('Send Gdrive or gdtot link along with command or by replying to the link by command', bot, message)
 

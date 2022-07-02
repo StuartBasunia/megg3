@@ -1,4 +1,4 @@
-from logging import getLogger, ERROR
+
 from os import remove as osremove, walk, path as ospath, rename as osrename
 from time import time, sleep
 from pyrogram.errors import FloodWait, RPCError
@@ -10,8 +10,7 @@ from bot import app, DOWNLOAD_DIR, AS_DOCUMENT, AS_DOC_USERS, AS_MEDIA_USERS, CU
 from bot.helper.ext_utils.fs_utils import take_ss, get_media_info, get_video_resolution, get_path_size
 from bot.helper.ext_utils.bot_utils import get_readable_file_size
 
-LOGGER = getLogger(__name__)
-getLogger("pyrogram").setLevel(ERROR)
+
 
 VIDEO_SUFFIXES = ("MKV", "MP4", "MOV", "WMV", "3GP", "MPG", "WEBM", "AVI", "FLV", "M4V", "GIF")
 AUDIO_SUFFIXES = ("MP3", "M4A", "M4B", "FLAC", "WAV", "AIF", "OGG", "AAC", "DTS", "MID", "AMR", "MKA")
@@ -47,7 +46,6 @@ class TgUploader:
                 up_path = ospath.join(dirpath, file_)
                 fsize = ospath.getsize(up_path)
                 if fsize == 0:
-                    LOGGER.error(f"{up_path} size is zero, telegram don't upload zero size files")
                     self.__corrupted += 1
                     continue
                 self.__upload_file(up_path, file_, dirpath)
@@ -58,7 +56,6 @@ class TgUploader:
                 sleep(1)
         if len(self.__msgs_dict) <= self.__corrupted:
             return self.__listener.onUploadError('Files Corrupted. Check logs')
-        LOGGER.info(f"Leech Completed: {self.name}")
         self.__listener.onUploadComplete(None, size, self.__msgs_dict, None, self.__corrupted, self.name)
 
     def __upload_file(self, up_path, file_, dirpath):
@@ -140,13 +137,13 @@ class TgUploader:
                                                              disable_notification=True,
                                                              progress=self.__upload_progress)
         except FloodWait as f:
-            LOGGER.warning(str(f))
+
             sleep(f.value)
         except RPCError as e:
-            LOGGER.error(f"RPCError: {e} File: {up_path}")
+
             self.__corrupted += 1
         except Exception as err:
-            LOGGER.error(f"{err} File: {up_path}")
+
             self.__corrupted += 1
         if self.__thumb is None and thumb is not None and ospath.lexists(thumb):
             osremove(thumb)
@@ -180,5 +177,4 @@ class TgUploader:
 
     def cancel_download(self):
         self.__is_cancelled = True
-        LOGGER.info(f"Cancelling Upload: {self.name}")
         self.__listener.onUploadError('your upload has been stopped!')

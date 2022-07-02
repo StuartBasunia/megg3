@@ -9,13 +9,13 @@ from time import time
 from math import ceil
 
 from .exceptions import NotSupportedExtractionArchive
-from bot import aria2, LOGGER, DOWNLOAD_DIR, get_client, TG_SPLIT_SIZE, EQUAL_SPLITS, STORAGE_THRESHOLD
+from bot import aria2, DOWNLOAD_DIR, get_client, TG_SPLIT_SIZE, EQUAL_SPLITS, STORAGE_THRESHOLD
 
 VIDEO_SUFFIXES = ("M4V", "MP4", "MOV", "FLV", "WMV", "3GP", "MPG", "WEBM", "MKV", "AVI")
 
 def clean_download(path: str):
     if ospath.exists(path):
-        LOGGER.info(f"Cleaning Download: {path}")
+
         try:
             rmtree(path)
         except FileNotFoundError:
@@ -40,15 +40,14 @@ def clean_all():
 
 def exit_clean_up(signal, frame):
     try:
-        LOGGER.info("Please wait, while we clean up the downloads and stop running downloads")
+
         clean_all()
         sysexit(0)
     except KeyboardInterrupt:
-        LOGGER.warning("Force Exiting before the cleanup finishes!")
+
         sysexit(1)
 
 def clean_unwanted(path: str):
-    LOGGER.info(f"Cleaning unwanted files/folders: {path}")
     for dirpath, subdir, files in walk(path, topdown=False):
         for filee in files:
             if filee.endswith(".!qB") or filee.endswith('.parts') and filee.startswith('.'):
@@ -223,7 +222,6 @@ def get_media_info(path):
                                           "json", "-show_format", path]).decode('utf-8')
         fields = jsnloads(result)['format']
     except Exception as e:
-        LOGGER.error(f"get_media_info: {e}")
         return 0, None, None
     try:
         duration = round(float(fields['duration']))
@@ -249,6 +247,5 @@ def get_video_resolution(path):
         height = int(fields['height'])
         return width, height
     except Exception as e:
-        LOGGER.error(f"get_video_resolution: {e}")
         return 480, 320
 

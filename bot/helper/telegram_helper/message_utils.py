@@ -5,7 +5,7 @@ from telegram.error import RetryAfter
 from pyrogram.errors import FloodWait
 from pyrogram import enums
 
-from bot import AUTO_DELETE_MESSAGE_DURATION, LOGGER, status_reply_dict, status_reply_dict_lock, \
+from bot import AUTO_DELETE_MESSAGE_DURATION, status_reply_dict, status_reply_dict_lock, \
                 Interval, DOWNLOAD_STATUS_UPDATE_INTERVAL, RSS_CHAT_ID, rss_session, bot
 from bot.helper.ext_utils.bot_utils import get_readable_message, setInterval
 
@@ -16,11 +16,11 @@ def sendMessage(text: str, bot, message: Message):
                             reply_to_message_id=message.message_id,
                             text=text, allow_sending_without_reply=True, parse_mode='HTMl', disable_web_page_preview=True)
     except RetryAfter as r:
-        LOGGER.warning(str(r))
+        
         sleep(r.retry_after * 1.5)
         return sendMessage(text, bot, message)
     except Exception as e:
-        LOGGER.error(str(e))
+        
         return
 
 def sendMarkup(text: str, bot, message: Message, reply_markup: InlineKeyboardMarkup):
@@ -30,11 +30,11 @@ def sendMarkup(text: str, bot, message: Message, reply_markup: InlineKeyboardMar
                             text=text, reply_markup=reply_markup, allow_sending_without_reply=True,
                             parse_mode='HTMl', disable_web_page_preview=True)
     except RetryAfter as r:
-        LOGGER.warning(str(r))
+        
         sleep(r.retry_after * 1.5)
         return sendMarkup(text, bot, message, reply_markup)
     except Exception as e:
-        LOGGER.error(str(e))
+        
         return
 
 def editMessage(text: str, message: Message, reply_markup=None):
@@ -43,11 +43,11 @@ def editMessage(text: str, message: Message, reply_markup=None):
                               chat_id=message.chat.id,reply_markup=reply_markup,
                               parse_mode='HTMl', disable_web_page_preview=True)
     except RetryAfter as r:
-        LOGGER.warning(str(r))
+
         sleep(r.retry_after * 1.5)
         return editMessage(text, message, reply_markup)
     except Exception as e:
-        LOGGER.error(str(e))
+
         return
 
 def sendRss(text: str, bot):
@@ -55,21 +55,19 @@ def sendRss(text: str, bot):
         try:
             return bot.send_message(RSS_CHAT_ID, text, parse_mode='HTMl', disable_web_page_preview=True)
         except RetryAfter as r:
-            LOGGER.warning(str(r))
+
             sleep(r.retry_after * 1.5)
             return sendRss(text, bot)
         except Exception as e:
-            LOGGER.error(str(e))
+
             return
     else:
         try:
             return rss_session.send_message(RSS_CHAT_ID, text, parse_mode=enums.ParseMode.HTML, disable_web_page_preview=True)
         except FloodWait as e:
-            LOGGER.warning(str(e))
             sleep(e.x * 1.5)
             return sendRss(text, bot)
         except Exception as e:
-            LOGGER.error(str(e))
             return
 
 def deleteMessage(bot, message: Message):
@@ -77,7 +75,7 @@ def deleteMessage(bot, message: Message):
         bot.delete_message(chat_id=message.chat.id,
                            message_id=message.message_id)
     except Exception as e:
-        LOGGER.error(str(e))
+        print(str(e))
 
 def sendLogFile(bot, message: Message):
     with open('log.txt', 'rb') as f:
@@ -102,7 +100,7 @@ def delete_all_messages():
                 deleteMessage(bot, message)
                 del status_reply_dict[message.chat.id]
             except Exception as e:
-                LOGGER.error(str(e))
+                print(str(e))
 
 def update_all_messages():
     msg, buttons = get_readable_message()
@@ -126,7 +124,6 @@ def sendStatusMessage(msg, bot):
                 deleteMessage(bot, message)
                 del status_reply_dict[msg.chat.id]
             except Exception as e:
-                LOGGER.error(str(e))
                 del status_reply_dict[msg.chat.id]
         if buttons == "":
             message = sendMessage(progress, bot, msg)

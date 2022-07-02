@@ -1,7 +1,7 @@
 from os import path as ospath, makedirs
 from psycopg2 import connect, DatabaseError
 
-from bot import DB_URI, AUTHORIZED_CHATS, SUDO_USERS, AS_DOC_USERS, AS_MEDIA_USERS, rss_dict, LOGGER
+from bot import DB_URI, AUTHORIZED_CHATS, SUDO_USERS, AS_DOC_USERS, AS_MEDIA_USERS, rss_dict
 
 class DbManger:
     def __init__(self):
@@ -13,7 +13,6 @@ class DbManger:
             self.conn = connect(DB_URI)
             self.cur = self.conn.cursor()
         except DatabaseError as error:
-            LOGGER.error(f"Error in DB connection: {error}")
             self.err = True
 
     def disconnect(self):
@@ -43,7 +42,6 @@ class DbManger:
               """
         self.cur.execute(sql)
         self.conn.commit()
-        LOGGER.info("Database Initiated")
         self.db_load()
 
     def db_load(self):
@@ -66,7 +64,6 @@ class DbManger:
                         makedirs('Thumbnails')
                     with open(path, 'wb+') as f:
                         f.write(row[5])
-            LOGGER.info("Users data has been imported from Database")
         # Rss Data
         self.cur.execute("SELECT * FROM rss")
         rows = self.cur.fetchall()  #returns a list ==> (name, feed_link, last_link, last_title, filters)
@@ -79,7 +76,6 @@ class DbManger:
                         y = x.split(' or ')
                         f_lists.append(y)
                 rss_dict[row[0]] = [row[1], row[2], row[3], f_lists]
-            LOGGER.info("Rss data has been imported from Database.")
         self.disconnect()
 
     def user_auth(self, chat_id: int):

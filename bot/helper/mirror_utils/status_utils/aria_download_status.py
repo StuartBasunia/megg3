@@ -1,11 +1,11 @@
-from bot import aria2, DOWNLOAD_DIR, LOGGER
+from bot import aria2, DOWNLOAD_DIR
 from bot.helper.ext_utils.bot_utils import MirrorStatus
 
 def get_download(gid):
     try:
         return aria2.get_download(gid)
     except Exception as e:
-        LOGGER.error(f'{e}: while getting torrent info')
+        print(f'{e}: while getting torrent info')
 
 
 class AriaDownloadStatus:

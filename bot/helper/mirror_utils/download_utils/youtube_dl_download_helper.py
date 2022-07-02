@@ -1,6 +1,5 @@
 from random import SystemRandom
 from string import ascii_letters, digits
-from logging import getLogger
 from yt_dlp import YoutubeDL, DownloadError
 from threading import RLock
 from time import time
@@ -12,7 +11,7 @@ from bot.helper.telegram_helper.message_utils import sendStatusMessage
 from ..status_utils.youtube_dl_download_status import YoutubeDLDownloadStatus
 from bot.helper.ext_utils.fs_utils import check_storage_threshold
 
-LOGGER = getLogger(__name__)
+
 
 
 class MyLogger:
@@ -31,12 +30,12 @@ class MyLogger:
 
     @staticmethod
     def warning(msg):
-        LOGGER.warning(msg)
+       print(msg)
 
     @staticmethod
     def error(msg):
         if msg != "ERROR: Cancelling...":
-            LOGGER.error(msg)
+            print(msg)
 
 
 class YoutubeDLHelper:
@@ -172,7 +171,6 @@ class YoutubeDLHelper:
                 rate = 320
             self.opts['postprocessors'] = [{'key': 'FFmpegExtractAudio','preferredcodec': 'mp3','preferredquality': f'{rate}'}]
         self.opts['format'] = qual
-        LOGGER.info(f"Downloading with YT-DLP: {link}")
         self.extractMetaData(link, name, args)
         if self.__is_cancelled:
             return
@@ -190,7 +188,6 @@ class YoutubeDLHelper:
 
     def cancel_download(self):
         self.__is_cancelled = True
-        LOGGER.info(f"Cancelling Download: {self.name}")
         if not self.__downloading:
             self.__onDownloadError("Download Cancelled by User!")
 

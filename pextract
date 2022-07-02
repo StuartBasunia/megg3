@@ -39,17 +39,17 @@ extract() {
     ;;
   *.tar.xz)
     a_dir=$(expr "$arg" : '\(.*\).tar.xz')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.zip)
     a_dir=$(expr "$arg" : '\(.*\).zip')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.7z)
     a_dir=$(expr "$arg" : '\(.*\).7z')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.Z)
@@ -59,132 +59,132 @@ extract() {
   *.rar)
     a_dir=$(expr "$arg" : '\(.*\).rar')
     mkdir "$a_dir"
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.iso)
     a_dir=$(expr "$arg" : '\(.*\).iso')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.wim)
     a_dir=$(expr "$arg" : '\(.*\).wim')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.cab)
     a_dir=$(expr "$arg" : '\(.*\).cab')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.apm)
     a_dir=$(expr "$arg" : '\(.*\).apm')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.arj)
     a_dir=$(expr "$arg" : '\(.*\).arj')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.chm)
     a_dir=$(expr "$arg" : '\(.*\).chm')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.cpio)
     a_dir=$(expr "$arg" : '\(.*\).cpio')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.cramfs)
     a_dir=$(expr "$arg" : '\(.*\).cramfs')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.deb)
     a_dir=$(expr "$arg" : '\(.*\).deb')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.dmg)
     a_dir=$(expr "$arg" : '\(.*\).dmg')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.fat)
     a_dir=$(expr "$arg" : '\(.*\).fat')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.hfs)
     a_dir=$(expr "$arg" : '\(.*\).hfs')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.lzh)
     a_dir=$(expr "$arg" : '\(.*\).lzh')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.lzma)
     a_dir=$(expr "$arg" : '\(.*\).lzma')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.lzma2)
     a_dir=$(expr "$arg" : '\(.*\).lzma2')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.mbr)
     a_dir=$(expr "$arg" : '\(.*\).mbr')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.msi)
     a_dir=$(expr "$arg" : '\(.*\).msi')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.mslz)
     a_dir=$(expr "$arg" : '\(.*\).mslz')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.nsis)
     a_dir=$(expr "$arg" : '\(.*\).nsis')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.ntfs)
     a_dir=$(expr "$arg" : '\(.*\).ntfs')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.rpm)
     a_dir=$(expr "$arg" : '\(.*\).rpm')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.squashfs)
     a_dir=$(expr "$arg" : '\(.*\).squashfs')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.udf)
     a_dir=$(expr "$arg" : '\(.*\).udf')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.vhd)
     a_dir=$(expr "$arg" : '\(.*\).vhd')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *.xar)
     a_dir=$(expr "$arg" : '\(.*\).xar')
-    7z x "$arg" -o"$a_dir" -p"$pswd" > NUL:
+    saxx
     local code=$?
     ;;
   *)

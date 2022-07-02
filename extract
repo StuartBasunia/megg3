@@ -1,7 +1,6 @@
 #!/bin/bash
 
 if [ $# -lt 1 ]; then
-  echo "Usage: $(basename $0) FILES"
   exit 1
 fi
 
@@ -188,7 +187,7 @@ extract() {
     local code=$?
     ;;
   *)
-    echo "'$arg' cannot be extracted via extract()" 1>&2
+    echo "'$arg' failed" 1>&2
     exit 1
     ;;
   esac
